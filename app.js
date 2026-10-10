@@ -43,7 +43,7 @@
       me: 'わたし',
       kids: [{ name: '子ども', cm: 90 }],
       checks: {}, done: {}, by: {}, resv: {}, showPick: {}, pin: {}, later: {}, fav: {}, extra: [],
-      days: [{ date: '2026-11-12', park: 'dl' }, { date: '2026-11-13', park: 'dca' }, { date: '2026-11-14', park: 'dl' }],
+      days: [],
       dayIdx: 0, tab: 'today', sample: false,
       view: { park: null, wpark: 'dl', filter: 'all', kidOnly: false, mapPark: 'dl' }
     };
@@ -54,16 +54,7 @@
   var S = load();
   if (!S) {
     S = defaults();
-    /* 初回は「例」のチェックを入れておく（準備タブから消せる） */
-    S.sample = true;
-    ['ピーター・パン', 'ダンボ', 'ミッキー＆ミニー', 'ビッグサンダー', 'カリブの海賊', 'クリスマス・ファンタジー', '花火', 'ブルーバイユー',
-      'ドール・ホイップ', 'ミッキー・ベニエ', 'ブルーイのグッズ',
-      'ラジエーター', 'トイ・ストーリー', 'リトル・マーメイド', 'モンスターズ', 'ミッキーのハッピー'].forEach(function (n) {
-      var it = find(n); if (it) { S.checks[it.key] = true; S.by[it.key] = '例'; }
-    });
-    var bb = find('ブルーバイユー'); if (bb) S.resv[bb.key] = { day: 2, time: '15:00' };
-    var pr = find('クリスマス・ファンタジー'); if (pr) S.showPick[pr.key] = '15:30';
-    var fw = find('花火'); if (fw) S.showPick[fw.key] = '20:30';
+    /* 初回は何も入れない（まっさらな状態） */
   } else {
     var d0 = defaults();
     Object.keys(d0).forEach(function (k) { if (S[k] == null) S[k] = d0[k]; });
@@ -1049,7 +1040,7 @@
       case 'delExtra': S.extra.splice(Number(v), 1); break;
       case 'dayDate': S.days[Number(v)].date = el.value; break;
       case 'dayPark': S.days[Number(v)].park = el.value; break;
-      case 'addDay': { var last = S.days[S.days.length - 1]; var nd = last && last.date ? new Date(Date.parse(last.date + 'T12:00:00Z') + 864e5).toISOString().slice(0, 10) : '2026-11-12'; S.days.push({ date: nd, park: last && last.park === 'dl' ? 'dca' : 'dl' }); break; }
+      case 'addDay': { var last = S.days[S.days.length - 1]; var nd = last && last.date ? new Date(Date.parse(last.date + 'T12:00:00Z') + 864e5).toISOString().slice(0, 10) : todayLA(); S.days.push({ date: nd, park: last && last.park === 'dl' ? 'dca' : 'dl' }); break; }
       case 'delDay': {
         var di = Number(v); S.days.splice(di, 1);
         Object.keys(S.pin).forEach(function (x) { if (S.pin[x] === di) delete S.pin[x]; else if (S.pin[x] > di) S.pin[x]--; });

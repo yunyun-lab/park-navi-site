@@ -1,5 +1,5 @@
 /* 圏外対策：アプリ本体をスマホに保存しておく。最新情報（/api）は毎回取りに行く */
-var CACHE = 'parknavi-v18';
+var CACHE = 'parknavi-v19';
 var FILES = ['./', 'index.html', 'app.js', 'data.js', 'map.js', 'guide.js', 'icons.js', 'links.js', 'icon.svg', 'manifest.webmanifest'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
