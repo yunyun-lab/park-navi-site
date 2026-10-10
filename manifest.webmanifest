@@ -1,0 +1,14 @@
+{
+  "name": "パーク回遊ナビ",
+  "short_name": "回遊ナビ",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F4F6FA",
+  "theme_color": "#2457D6",
+  "lang": "ja",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
