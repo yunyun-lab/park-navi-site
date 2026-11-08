@@ -970,33 +970,38 @@
   }
 
   /* ---------- 持ち物チェック ----------
-     - 最初から入っているのは「海外・2〜3歳の子連れ・11月のアナハイム」向けのリスト
+     - リストは、ゆうさんが作った「2026アナハイム持ち物」がもと（しう＝子ども、あや＝ママ）
+     - 項目の4つめ：'pre' は「もうスーツケースに入れた」（最初からチェック済み）、'maybe' は「入れるか検討中」
      - 行き（荷造り）と帰り（忘れ物）で別々にチェック。チェックした人の名前も残す
      - 家族の部屋では、ほかのデータとは別の箱で同期する（古い版のアプリが持ち物を消さないように） */
   var PACK_CATS = [
-    ['docs', '書類・お金', [
-      ['passport', 'パスポート（全員分）', '残りの有効期間も確認'], ['esta', 'ESTAの承認の控え', '子どもも1人1件'], ['air', '航空券（eチケットの控え）'],
-      ['hotel', 'ホテル予約の控え'], ['ticket', 'パークチケット', 'アプリに入っているか確認'], ['card', 'クレジットカード（2枚以上）'],
-      ['cash', '現金（少しだけドル）'], ['ins', '海外旅行保険の控え']]],
-    ['tech', 'スマホ・電子機器', [
-      ['phone', 'スマホ'], ['charger', '充電器・ケーブル'], ['battery', 'モバイルバッテリー', '預け荷物に入れず、手荷物へ'],
-      ['net', 'eSIM・Wi-Fiルーター'], ['dapp', 'ディズニーのアプリ', 'ログインできるか確認'], ['earphone', 'イヤホン']]],
-    ['kid', '子ども用品', [
-      ['diaper', 'おむつ（日数分＋予備）'], ['wipes', 'おしりふき'], ['kclothes', '子どもの着替え（多めに）'], ['snack', 'おやつ（機内・パーク用）'],
-      ['mug', 'マグ・ストローボトル'], ['spoon', '子ども用スプーン・エプロン'], ['stroller', 'ベビーカー', '持っていくか、現地で借りるか決めておく'],
-      ['carrier', '抱っこひも'], ['toy', 'お気に入りのおもちゃ・絵本'], ['video', '機内で見る動画', 'ダウンロードしておく'], ['kmed', '子どものいつもの薬']]],
-    ['clothes', '衣類', [
-      ['clothes', '着替え（日数分）'], ['jacket', '上着', '朝晩は冷える'], ['pajama', 'パジャマ'], ['under', '下着・靴下'],
-      ['shoes', '歩きやすい靴'], ['hat', '帽子・サングラス'], ['poncho', 'レインポンチョ']]],
-    ['care', '薬・洗面', [
-      ['med', '常備薬・酔い止め'], ['band', '絆創膏'], ['thermo', '体温計'], ['sun', '日焼け止め'], ['tooth', '歯ブラシ・歯みがき'],
-      ['skin', 'スキンケア・リップ', '乾燥しやすい'], ['wet', 'ウェットティッシュ・除菌シート'], ['mask', 'マスク']]],
-    ['park', 'パーク用', [
-      ['backpack', '小さめのリュック'], ['zip', 'ジッパー付きの袋', '濡れた物・小物用'], ['sheet', 'レジャーシート', 'パレード待ち用'],
-      ['ears', 'カチューシャ・イヤーハット'], ['bottle', '水筒'], ['pen', 'ボールペン']]],
-    ['flight', '機内', [
-      ['pillow', 'ネックピロー'], ['flightjk', '機内で羽織るもの'], ['earpop', '耳抜き用の飲み物・おしゃぶり', '離着陸のときに子どもに'],
-      ['liquid', '液体は小分けにして透明な袋へ'], ['trash', 'ゴミ袋・エチケット袋']]]
+    ['sc', 'スーツケース', '', [
+      ['sake', '酒', '', 'maybe'], ['tea', 'お茶'], ['hashi', '割り箸'], ['spoon', 'プラスチックのスプーン・フォーク'], ['ziploc', 'ジップロック'],
+      ['diaper', 'ノーマルオムツ', '', 'pre'], ['trash', '臭わないゴミ袋'], ['swim', '水着（3人分）'], ['bib', 'お食事スタイ', '', 'pre'],
+      ['pooldiaper', 'プール用オムツ（2個）'], ['wipes', 'おしりふき'], ['udon', 'カップうどん'], ['rice', 'レトルトご飯', '', 'pre'],
+      ['bread', 'しうの帰り用のパン', '', 'maybe'], ['snack', 'お菓子'], ['supp', 'しうの解熱座薬'], ['cream', 'しうのクリーム'],
+      ['sun', 'サングラス（3人分）'], ['clothes', '服（3人分）'], ['under', '下着（3人分）'], ['pajama', 'パジャマ（3人分）'], ['slipper', 'スリッパ（3人分）'],
+      ['shikishi', '色紙', 'キャラクターのサイン用'], ['pens', 'サイン用のカラーペン'], ['cable', '充電器用の充電ケーブル'], ['napkin', '母ナプキン'], ['mdiaper', '母オムツ（2個）'],
+      ['razor', 'カミソリ'], ['kappa', 'カッパ'], ['raincover', 'ベビーカー用の雨具'], ['shoes', '靴', '', 'maybe'], ['boots', 'しうの長靴', '', 'maybe'],
+      ['phonecover', '携帯用の防水カバー'], ['skincare', '化粧水・メイク落とし'], ['sunscreen', '大人の日焼け止め'], ['pot', '電気ポット'], ['nail', 'しうの爪切り']]],
+    ['hand', '手荷物', '', [
+      ['water', '水ボトル'], ['stickbread', 'スティックパン'], ['snack', 'お菓子'], ['bib', 'お食事スタイ'], ['tooth', '歯ブラシ（3人分）'],
+      ['stitch', 'スティッチの帽子'], ['passport', 'パスポート'], ['ppcopy', 'パスポートのコピー'], ['hotel', 'ホテル予約のコピー'], ['esta', 'ESTA'],
+      ['decl', '健康申告書（どっか行ってない宣言）', '3人分を印刷して記入・署名（親がまとめて署名OK）。行きの羽田でANAの係員に見せる'],
+      ['ins', '保険'], ['pouch', 'しうのANAポーチ'], ['momonga', 'モモンガ', 'しうの'], ['wallet', 'ミラコスタの財布'], ['pen', 'ボールペン'],
+      ['boshi', '母子手帳'], ['towel', 'タオル'], ['charger', 'iPhoneの充電器'], ['icable', 'iPhone用の充電ケーブル'], ['cosme', '化粧品'],
+      ['ksun', 'しうの日焼け止め'], ['tissue', 'ティッシュ'], ['woody', 'ウッディ', 'しうの'], ['ipad', 'iPad'], ['airpods', 'AirPods'], ['warm', '防寒']]],
+    ['d11', '服 11/11（水）羽田→アナハイム', '夜：キャラクターダイニング（お店は未定）', [
+      ['s1', 'しう：ANAのTシャツ'], ['s2', 'しう：パジャマ'], ['s3', 'しう：着いた後の服'], ['a1', 'あや：Tシャツ（どれか）'], ['a2', 'あや：クリスマスのスピリットジャージー']]],
+    ['d12', '服 11/12（木）カリフォルニア・アドベンチャー', '昼：イタリアン', [
+      ['s1', 'しう：カーズのTシャツ'], ['s2', 'しう：カーズのセーター'], ['s3', 'しう：チェッカー柄のズボン'], ['s4', 'しう：カーズのカチューシャ'],
+      ['a1', 'あや：Tシャツ（どれか）'], ['a2', 'あや：ズボン']]],
+    ['d13', '服 11/13（金）ディズニーランド', '昼：カフェ・オーリンズ', [
+      ['s1', 'しう：お揃いのTシャツ'], ['s2', 'しう：ズボン'], ['s3', 'しう：はおり'], ['a1', 'あや：お揃いのTシャツ'], ['a2', 'あや：ズボン'], ['a3', 'あや：クリスマスのスピリットジャージー']]],
+    ['d14', '服 11/14（土）カリフォルニア・アドベンチャー', '昼：ランプライト・ラウンジ', [
+      ['s1', 'しう：シンガポールのTシャツ'], ['s2', 'しう：ズボン'], ['s3', 'しう：サンタ服'], ['a1', 'あや：シンガポールのTシャツ'], ['a2', 'あや：ズボン'], ['a3', 'あや：クリスマスのスピリットジャージー']]],
+    ['d15', '服 11/15（日）アナハイム→羽田', '朝：グランドカリフォルニアンで朝ごはん？', [
+      ['s1', 'しう：Tシャツ（どれか）'], ['s2', 'しう：ズボン'], ['s3', 'しう：はおり'], ['a1', 'あや：ワンピース']]]
   ];
   var PACK_MAP = ['packOn', 'packBack', 'packWho', 'packAdd', 'packOff'];
   /* 担当：何も決めていなければパパ。押すたびに パパ → ママ → それぞれ（各自で用意）→ パパ */
@@ -1005,18 +1010,20 @@
   PACK_MAP.forEach(function (f) { if (!S[f] || typeof S[f] !== 'object' || Array.isArray(S[f])) S[f] = {}; });
   function packItems() {
     return PACK_CATS.map(function (c) {
-      var list = c[2].map(function (x) { return { id: c[0] + ':' + x[0], name: x[1], note: x[2] || '', own: false }; })
+      var list = c[3].map(function (x) { return { id: c[0] + ':' + x[0], name: x[1], note: x[2] || '', pre: x[3] === 'pre', maybe: x[3] === 'maybe', own: false }; })
         .filter(function (it) { return !S.packOff[it.id]; });
       Object.keys(S.packAdd).forEach(function (id) { var a = S.packAdd[id]; if (a && a.c === c[0]) list.push({ id: id, name: a.n, note: '', own: true, at: a.at || 0 }); });
       list.sort(function (a, b) { return (a.own ? 1 : 0) - (b.own ? 1 : 0) || (a.at || 0) - (b.at || 0); });
-      return { id: c[0], ja: c[1], items: list };
+      return { id: c[0], ja: c[1], sub: c[2], items: list };
     });
   }
   function packField() { return S.view.packMode === 'back' ? 'packBack' : 'packOn'; }
+  /* 「もう入れた」項目は、外したときだけ false を記録する（何も記録がなければチェック済み） */
+  function isOn(F, it) { var v = S[F][it.id]; return v === undefined ? (F === 'packOn' && !!it.pre) : !!v; }
   function viewPack() {
     var mode = S.view.packMode === 'back' ? 'back' : 'go', F = packField(), filt = S.view.packFilt || 'all';
     var cats = packItems(), all = [].concat.apply([], cats.map(function (c) { return c.items; }));
-    var nDone = all.filter(function (it) { return S[F][it.id]; }).length, pct = all.length ? Math.round(nDone * 100 / all.length) : 0;
+    var nDone = all.filter(function (it) { return isOn(F, it); }).length, pct = all.length ? Math.round(nDone * 100 / all.length) : 0;
     var top = '<h1>持ち物チェック</h1><span class="meta">家族の部屋に入っていれば、チェックが家族のスマホにも反映されます</span>';
     var h = '<section class="card hero">' +
       '<div class="seg" role="group" aria-label="チェックの種類"><button data-act="packMode" data-v="go" aria-pressed="' + (mode === 'go') + '">行きの荷造り</button><button data-act="packMode" data-v="back" aria-pressed="' + (mode === 'back') + '">帰りの忘れ物</button></div>' +
@@ -1028,28 +1035,29 @@
     }).join('') + '</div><span class="note">担当を押すと「パパ → ママ → それぞれ（各自で用意）」の順に切りかわります</span>';
     var closed = S.view.packClosed || {}, shown = 0;
     cats.forEach(function (c) {
-      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !S[F][it.id] : whoOf(it.id) === filt || whoOf(it.id) === 'それぞれ'); });
+      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !isOn(F, it) : whoOf(it.id) === filt || whoOf(it.id) === 'それぞれ'); });
       if (filt !== 'all' && !list.length) return;
       shown += list.length;
-      var n = c.items.filter(function (it) { return S[F][it.id]; }).length, isOpen = !closed[c.id];
+      var n = c.items.filter(function (it) { return isOn(F, it); }).length, isOpen = !closed[c.id];
       h += '<section class="grp"><button class="grphead" data-act="packGrp" data-v="' + c.id + '" aria-expanded="' + isOpen + '">' +
-        '<span class="grptitle"><span class="ja">' + esc(c.ja) + '</span></span>' +
+        '<span class="grptitle"><span class="ja">' + esc(c.ja) + '</span>' + (c.sub ? '<span class="grpsum">' + esc(c.sub) + '</span>' : '') + '</span>' +
         '<span class="grpon' + (n === c.items.length && n ? ' full' : '') + '">' + n + ' / ' + c.items.length + '</span>' +
         '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
       if (isOpen) {
         h += '<div class="grpbody">' + list.map(function (it) {
-          var by = S[F][it.id], who = whoOf(it.id);
-          return '<div class="item pk' + (by ? ' on' : '') + '"><label class="pkmain"><input type="checkbox" data-act="packChk" data-k="' + esc(it.id) + '"' + (by ? ' checked' : '') + '>' +
-            '<span class="pktext"><span class="pkname">' + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + '</span></label>' +
+          var on = isOn(F, it), by = S[F][it.id], who = whoOf(it.id);
+          return '<div class="item pk' + (on ? ' on' : '') + '"><label class="pkmain"><input type="checkbox" data-act="packChk" data-k="' + esc(it.id) + '"' + (on ? ' checked' : '') + '>' +
+            '<span class="pktext"><span class="pkname">' + (it.maybe ? '<span class="pkmaybe">検討中</span>' : '') + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + '</span></label>' +
             '<div class="pkside"><button class="pkwho ' + PACK_WHO_CLS[who] + '" data-act="packWho" data-k="' + esc(it.id) + '" aria-label="担当を切りかえ（いま：' + esc(who) + '）">' + esc(who) + '</button>' +
-            (by && by !== true ? '<span class="pkby">✓ ' + esc(by) + '</span>' : '') + '</div>' +
+            (on && typeof by === 'string' ? '<span class="pkby">✓ ' + esc(by) + '</span>' : on && by === undefined && it.pre ? '<span class="pkby">入れ済み</span>' : '') + '</div>' +
             '<button class="pkdel" data-act="packDel" data-k="' + esc(it.id) + '" aria-label="' + esc(it.name) + 'をリストから消す">×</button></div>';
-        }).join('') + (filt === 'all' ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="' + esc(c.ja) + 'に追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
+        }).join('') + (filt === 'all' ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="項目を追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
       }
       h += '</section>';
     });
     if (filt !== 'all' && !shown) h += '<p class="empty">' + (filt === 'todo' ? 'ぜんぶチェック済みです' : filt + 'の担当はありません') + '</p>';
-    var nOff = Object.keys(S.packOff).length;
+    var allIds = {}; PACK_CATS.forEach(function (c) { c[3].forEach(function (x) { allIds[c[0] + ':' + x[0]] = 1; }); });
+    var nOff = Object.keys(S.packOff).filter(function (k) { return allIds[k]; }).length;
     h += '<details class="more"><summary>リストの戻し方・チェックを全部外す</summary><div class="row2" style="margin-top:6px">' +
       '<button class="btn" data-act="packRestore"' + (nOff ? '' : ' disabled') + '>消した項目を戻す' + (nOff ? '（' + nOff + '件）' : '') + '</button>' +
       '<button class="btn" data-act="packClear">' + (mode === 'go' ? '行き' : '帰り') + 'のチェックを全部外す</button></div>' +
@@ -1062,7 +1070,11 @@
       case 'packMode': S.view.packMode = v; return true;
       case 'packFilt': S.view.packFilt = v; return true;
       case 'packGrp': S.view.packClosed = S.view.packClosed || {}; S.view.packClosed[v] = !S.view.packClosed[v]; return true;
-      case 'packChk': if (el.checked) S[F][k] = S.me || 'わたし'; else delete S[F][k]; return true;
+      case 'packChk': {
+        var pre = F === 'packOn' && PACK_CATS.some(function (c) { return c[3].some(function (x) { return c[0] + ':' + x[0] === k && x[3] === 'pre'; }); });
+        if (el.checked) S[F][k] = S.me || 'わたし'; else if (pre) S[F][k] = false; else delete S[F][k];
+        return true;
+      }
       case 'packWho': { var nx = PACK_WHO[(PACK_WHO.indexOf(whoOf(k)) + 1) % PACK_WHO.length]; if (nx === 'パパ') delete S.packWho[k]; else S.packWho[k] = nx; return true; }
       case 'packDel': {
         var own = !!S.packAdd[k], nm = own ? S.packAdd[k].n : (packItems().map(function (c) { return c.items; }).reduce(function (x, y) { return x.concat(y); }, []).filter(function (it) { return it.id === k; })[0] || {}).name;
@@ -1079,7 +1091,9 @@
       case 'packRestore': S.packOff = {}; return true;
       case 'packClear':
         if (!window.confirm((F === 'packOn' ? '行き' : '帰り') + 'のチェックを全部外しますか？')) return false;
-        S[F] = {}; return true;
+        S[F] = {};
+        if (F === 'packOn') PACK_CATS.forEach(function (c) { c[3].forEach(function (x) { if (x[3] === 'pre') S.packOn[c[0] + ':' + x[0]] = false; }); });
+        return true;
     }
     return false;
   }
