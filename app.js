@@ -323,6 +323,7 @@
     today: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
     wish: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>',
     plan: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+    pack: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M8 12l2.5 2.5L16 10"/></svg>',
     prep: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l5-3 6 3 5-3v13l-5 3-6-3-5 3z"/><path d="M9 4v13M15 7v13"/></svg>'
   };
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17.2l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
@@ -968,12 +969,129 @@
     return h + '</div></section>';
   }
 
+  /* ---------- 持ち物チェック ----------
+     - 最初から入っているのは「海外・2〜3歳の子連れ・11月のアナハイム」向けのリスト
+     - 行き（荷造り）と帰り（忘れ物）で別々にチェック。チェックした人の名前も残す
+     - 家族の部屋では、ほかのデータとは別の箱で同期する（古い版のアプリが持ち物を消さないように） */
+  var PACK_CATS = [
+    ['docs', '書類・お金', [
+      ['passport', 'パスポート（全員分）', '残りの有効期間も確認'], ['esta', 'ESTAの承認の控え', '子どもも1人1件'], ['air', '航空券（eチケットの控え）'],
+      ['hotel', 'ホテル予約の控え'], ['ticket', 'パークチケット', 'アプリに入っているか確認'], ['card', 'クレジットカード（2枚以上）'],
+      ['cash', '現金（少しだけドル）'], ['ins', '海外旅行保険の控え']]],
+    ['tech', 'スマホ・電子機器', [
+      ['phone', 'スマホ'], ['charger', '充電器・ケーブル'], ['battery', 'モバイルバッテリー', '預け荷物に入れず、手荷物へ'],
+      ['net', 'eSIM・Wi-Fiルーター'], ['dapp', 'ディズニーのアプリ', 'ログインできるか確認'], ['earphone', 'イヤホン']]],
+    ['kid', '子ども用品', [
+      ['diaper', 'おむつ（日数分＋予備）'], ['wipes', 'おしりふき'], ['kclothes', '子どもの着替え（多めに）'], ['snack', 'おやつ（機内・パーク用）'],
+      ['mug', 'マグ・ストローボトル'], ['spoon', '子ども用スプーン・エプロン'], ['stroller', 'ベビーカー', '持っていくか、現地で借りるか決めておく'],
+      ['carrier', '抱っこひも'], ['toy', 'お気に入りのおもちゃ・絵本'], ['video', '機内で見る動画', 'ダウンロードしておく'], ['kmed', '子どものいつもの薬']]],
+    ['clothes', '衣類', [
+      ['clothes', '着替え（日数分）'], ['jacket', '上着', '朝晩は冷える'], ['pajama', 'パジャマ'], ['under', '下着・靴下'],
+      ['shoes', '歩きやすい靴'], ['hat', '帽子・サングラス'], ['poncho', 'レインポンチョ']]],
+    ['care', '薬・洗面', [
+      ['med', '常備薬・酔い止め'], ['band', '絆創膏'], ['thermo', '体温計'], ['sun', '日焼け止め'], ['tooth', '歯ブラシ・歯みがき'],
+      ['skin', 'スキンケア・リップ', '乾燥しやすい'], ['wet', 'ウェットティッシュ・除菌シート'], ['mask', 'マスク']]],
+    ['park', 'パーク用', [
+      ['backpack', '小さめのリュック'], ['zip', 'ジッパー付きの袋', '濡れた物・小物用'], ['sheet', 'レジャーシート', 'パレード待ち用'],
+      ['ears', 'カチューシャ・イヤーハット'], ['bottle', '水筒'], ['pen', 'ボールペン']]],
+    ['flight', '機内', [
+      ['pillow', 'ネックピロー'], ['flightjk', '機内で羽織るもの'], ['earpop', '耳抜き用の飲み物・おしゃぶり', '離着陸のときに子どもに'],
+      ['liquid', '液体は小分けにして透明な袋へ'], ['trash', 'ゴミ袋・エチケット袋']]]
+  ];
+  var PACK_MAP = ['packOn', 'packBack', 'packWho', 'packAdd', 'packOff'];
+  var PACK_WHO = ['パパ', 'ママ'];
+  PACK_MAP.forEach(function (f) { if (!S[f] || typeof S[f] !== 'object' || Array.isArray(S[f])) S[f] = {}; });
+  function packItems() {
+    return PACK_CATS.map(function (c) {
+      var list = c[2].map(function (x) { return { id: c[0] + ':' + x[0], name: x[1], note: x[2] || '', own: false }; })
+        .filter(function (it) { return !S.packOff[it.id]; });
+      Object.keys(S.packAdd).forEach(function (id) { var a = S.packAdd[id]; if (a && a.c === c[0]) list.push({ id: id, name: a.n, note: '', own: true, at: a.at || 0 }); });
+      list.sort(function (a, b) { return (a.own ? 1 : 0) - (b.own ? 1 : 0) || (a.at || 0) - (b.at || 0); });
+      return { id: c[0], ja: c[1], items: list };
+    });
+  }
+  function packField() { return S.view.packMode === 'back' ? 'packBack' : 'packOn'; }
+  function viewPack() {
+    var mode = S.view.packMode === 'back' ? 'back' : 'go', F = packField(), filt = S.view.packFilt || 'all';
+    var cats = packItems(), all = [].concat.apply([], cats.map(function (c) { return c.items; }));
+    var nDone = all.filter(function (it) { return S[F][it.id]; }).length, pct = all.length ? Math.round(nDone * 100 / all.length) : 0;
+    var top = '<h1>持ち物チェック</h1><span class="meta">家族の部屋に入っていれば、チェックが家族のスマホにも反映されます</span>';
+    var h = '<section class="card hero">' +
+      '<div class="seg" role="group" aria-label="チェックの種類"><button data-act="packMode" data-v="go" aria-pressed="' + (mode === 'go') + '">行きの荷造り</button><button data-act="packMode" data-v="back" aria-pressed="' + (mode === 'back') + '">帰りの忘れ物</button></div>' +
+      '<div class="pkprog"><span class="big">' + nDone + '<small> / ' + all.length + '</small></span><span class="meta">' + (nDone === all.length && all.length ? (mode === 'go' ? '準備ばっちり！' : '忘れ物なし！') : (mode === 'go' ? 'カバンに入れたもの' : 'カバンに戻したもの')) + '</span></div>' +
+      '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></div>' +
+      (mode === 'back' ? '<span class="note">使い切ったもの・置いてくるものも、チェックしてOKです</span>' : '') + '</section>';
+    h += '<div class="filter" role="group" aria-label="表示の絞り込み">' + [['all', 'すべて'], ['todo', 'まだのもの']].concat(PACK_WHO.map(function (w) { return [w, w + 'の担当']; })).map(function (f) {
+      return '<button data-act="packFilt" data-v="' + esc(f[0]) + '" aria-pressed="' + (filt === f[0]) + '">' + esc(f[1]) + '</button>';
+    }).join('') + '</div>';
+    var closed = S.view.packClosed || {}, shown = 0;
+    cats.forEach(function (c) {
+      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !S[F][it.id] : S.packWho[it.id] === filt); });
+      if (filt !== 'all' && !list.length) return;
+      shown += list.length;
+      var n = c.items.filter(function (it) { return S[F][it.id]; }).length, isOpen = !closed[c.id];
+      h += '<section class="grp"><button class="grphead" data-act="packGrp" data-v="' + c.id + '" aria-expanded="' + isOpen + '">' +
+        '<span class="grptitle"><span class="ja">' + esc(c.ja) + '</span></span>' +
+        '<span class="grpon' + (n === c.items.length && n ? ' full' : '') + '">' + n + ' / ' + c.items.length + '</span>' +
+        '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+      if (isOpen) {
+        h += '<div class="grpbody">' + list.map(function (it) {
+          var by = S[F][it.id], who = S.packWho[it.id];
+          return '<div class="item pk' + (by ? ' on' : '') + '"><label class="pkmain"><input type="checkbox" data-act="packChk" data-k="' + esc(it.id) + '"' + (by ? ' checked' : '') + '>' +
+            '<span class="pktext"><span class="pkname">' + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + '</span></label>' +
+            '<div class="pkside"><button class="pkwho' + (who ? ' set' : '') + '" data-act="packWho" data-k="' + esc(it.id) + '" aria-label="担当を切りかえ（いま：' + esc(who || '未定') + '）">' + esc(who || '担当？') + '</button>' +
+            (by && by !== true ? '<span class="pkby">✓ ' + esc(by) + '</span>' : '') + '</div>' +
+            '<button class="pkdel" data-act="packDel" data-k="' + esc(it.id) + '" aria-label="' + esc(it.name) + 'をリストから消す">×</button></div>';
+        }).join('') + (filt === 'all' ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="' + esc(c.ja) + 'に追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
+      }
+      h += '</section>';
+    });
+    if (filt !== 'all' && !shown) h += '<p class="empty">' + (filt === 'todo' ? 'ぜんぶチェック済みです' : filt + 'の担当はまだありません。各項目の「担当？」を押すと決められます') + '</p>';
+    var nOff = Object.keys(S.packOff).length;
+    h += '<details class="more"><summary>リストの戻し方・チェックを全部外す</summary><div class="row2" style="margin-top:6px">' +
+      '<button class="btn" data-act="packRestore"' + (nOff ? '' : ' disabled') + '>消した項目を戻す' + (nOff ? '（' + nOff + '件）' : '') + '</button>' +
+      '<button class="btn" data-act="packClear">' + (mode === 'go' ? '行き' : '帰り') + 'のチェックを全部外す</button></div>' +
+      '<span class="note">家族の部屋に入っていると、家族のスマホでも同じように変わります</span></details>';
+    return { top: top, main: h };
+  }
+  function packAct(a, v, k, el) {
+    var F = packField();
+    switch (a) {
+      case 'packMode': S.view.packMode = v; return true;
+      case 'packFilt': S.view.packFilt = v; return true;
+      case 'packGrp': S.view.packClosed = S.view.packClosed || {}; S.view.packClosed[v] = !S.view.packClosed[v]; return true;
+      case 'packChk': if (el.checked) S[F][k] = S.me || 'わたし'; else delete S[F][k]; return true;
+      case 'packWho': { var i = PACK_WHO.indexOf(S.packWho[k]); if (i + 1 < PACK_WHO.length) S.packWho[k] = PACK_WHO[i + 1]; else delete S.packWho[k]; return true; }
+      case 'packDel': {
+        var own = !!S.packAdd[k], nm = own ? S.packAdd[k].n : (packItems().map(function (c) { return c.items; }).reduce(function (x, y) { return x.concat(y); }, []).filter(function (it) { return it.id === k; })[0] || {}).name;
+        if (!window.confirm('「' + (nm || 'この項目') + '」をリストから消しますか？' + (own ? '' : '\n（下の「消した項目を戻す」で戻せます）'))) return false;
+        if (own) delete S.packAdd[k]; else S.packOff[k] = true;
+        delete S.packOn[k]; delete S.packBack[k]; delete S.packWho[k]; return true;
+      }
+      case 'packAddBtn': {
+        var inp = document.getElementById('pkin-' + v), name = inp && inp.value.trim().slice(0, 40);
+        if (!name) { if (inp) inp.focus(); return false; }
+        var id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        S.packAdd[id] = { c: v, n: name, at: Date.now() }; return true;
+      }
+      case 'packRestore': S.packOff = {}; return true;
+      case 'packClear':
+        if (!window.confirm((F === 'packOn' ? '行き' : '帰り') + 'のチェックを全部外しますか？')) return false;
+        S[F] = {}; return true;
+    }
+    return false;
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || !e.target.classList || !e.target.classList.contains('packin') || e.isComposing) return;
+    e.preventDefault(); var b = e.target.parentNode.querySelector('[data-act="packAddBtn"]'); if (b) b.click();
+  });
+
   /* ---------- 描画 ---------- */
-  var TABS = [['today', '今日'], ['wish', 'やりたい'], ['plan', 'プラン'], ['prep', '準備']];
+  var TABS = [['today', '今日'], ['wish', 'やりたい'], ['plan', 'プラン'], ['pack', '持ち物'], ['prep', '準備']];
   var lastSel = null;
   function render() {
     var plans = planAll();
-    var v = S.tab === 'wish' ? viewWish() : S.tab === 'plan' ? viewPlan(plans) : S.tab === 'prep' ? viewPrep() : viewToday(plans);
+    var v = S.tab === 'wish' ? viewWish() : S.tab === 'plan' ? viewPlan(plans) : S.tab === 'prep' ? viewPrep() : S.tab === 'pack' ? viewPack() : viewToday(plans);
     document.getElementById('top').innerHTML = v.top;
     document.getElementById('main').innerHTML = v.main;
     var ov = document.getElementById('overlay');
@@ -1062,7 +1180,7 @@
       case 'roomLeave': roomLeave(); return;
       case 'roomRotate': roomRotate(); return;
       case 'importCode': importCode(); break;
-      default: return;
+      default: if (!packAct(a, v, k, el)) return;
     }
     save(); var y = window.scrollY; render(); if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
   }
@@ -1134,6 +1252,55 @@
     SHARED_WHOLE.forEach(function (f) { out[f] = !same(local[f], base[f]) ? local[f] : remote[f]; });
     return out;
   }
+  /* 持ち物は別の箱（合言葉から作った別の指紋）で同期する。古い版のアプリはこの箱を知らないので、消してしまうことがない */
+  function packOf() { var o = {}; PACK_MAP.forEach(function (f) { o[f] = S[f]; }); return clone(o); }
+  function packNorm(d) { var o = {}; PACK_MAP.forEach(function (f) { o[f] = d && d[f] && typeof d[f] === 'object' && !Array.isArray(d[f]) ? clone(d[f]) : {}; }); return o; }
+  function applyPack(d) { d = packNorm(d); PACK_MAP.forEach(function (f) { S[f] = d[f]; }); }
+  function mergePack(base, local, remote) {
+    base = packNorm(base); local = packNorm(local); remote = packNorm(remote);
+    var out = {};
+    PACK_MAP.forEach(function (f) {
+      var r = remote[f], b = base[f], l = local[f];
+      Object.keys(Object.assign({}, b, l)).forEach(function (k) { if (!same(l[k], b[k])) { if (l[k] === undefined) delete r[k]; else r[k] = l[k]; } });
+      out[f] = r;
+    });
+    return out;
+  }
+  function packRoomId(code) {
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode('parknavi-pack:' + normCode(code))).then(function (h) {
+      return Array.prototype.map.call(new Uint8Array(h), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+    });
+  }
+  function packStep() {
+    var R = ROOM; if (!R || !R.code) return Promise.resolve(false);
+    var changed = false, tries = 0;
+    return (R.pack && R.pack.id ? Promise.resolve(R.pack.id) : packRoomId(R.code)).then(function (id) {
+      function step() {
+        return roomCall({ op: 'get', id: id }).then(function (g) {
+          if (!g.ok && g.error === 'not_found') {
+            var data = packOf();
+            return roomCall({ op: 'create', id: id, data: data }).then(function (c) {
+              if (c.ok) { R.pack = { id: id, ver: c.ver, base: data }; return; }
+              if (c.error === 'exists' && ++tries < 4) return step();
+              throw c;
+            });
+          }
+          if (!g.ok) throw g;
+          /* 初めてそろえるときは「何もない状態」を基準にする（どちらの端末のチェックも消さない） */
+          var base = R.pack && R.pack.id === id && R.pack.base ? R.pack.base : {};
+          var local = packOf(), merged = mergePack(base, local, g.data);
+          if (!same(merged, local)) { applyPack(merged); saveLocal(); changed = true; }
+          if (same(merged, packNorm(g.data))) { R.pack = { id: id, ver: g.ver, base: merged }; return; }
+          return roomCall({ op: 'put', id: id, base: g.ver, data: merged }).then(function (p) {
+            if (p.ok) { R.pack = { id: id, ver: p.ver, base: merged }; return; }
+            if (p.error === 'conflict' && ++tries < 4) return step();
+            throw p;
+          });
+        });
+      }
+      return step().then(function () { return changed; });
+    });
+  }
   var CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; /* 見まちがえやすい I・O・0・1 は使わない */
   function newCode() { var a = new Uint8Array(20), s = ''; crypto.getRandomValues(a); for (var i = 0; i < 20; i++) { s += CODE_CHARS[a[i] % 32]; if (i % 5 === 4 && i < 19) s += '-'; } return s; }
   function normCode(c) { return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
@@ -1169,7 +1336,8 @@
         });
       });
     }
-    return step().catch(function (e) { RS.err = roomErr(e || {}); RS.errCode = (e && e.error) || ''; }).then(function () {
+    return step().then(function () { return packStep().then(function (c) { if (c) changed = true; }); })
+      .catch(function (e) { RS.err = roomErr(e || {}); RS.errCode = (e && e.error) || ''; }).then(function () {
       RS.busy = false; roomSave();
       if (changed || byHand || S.tab === 'prep') rerender();
       if (syncAgain) { syncAgain = false; roomKick(); }
@@ -1178,7 +1346,7 @@
   var kickTimer = null;
   function roomKick() {
     if (!ROOM || !ROOM.base) return;
-    if (same(sharedOf(), ROOM.base)) return;
+    if (same(sharedOf(), ROOM.base) && ROOM.pack && same(packOf(), ROOM.pack.base)) return;
     clearTimeout(kickTimer); kickTimer = setTimeout(function () { roomSync(); }, 1500);
   }
   window.__roomKick = roomKick;
@@ -1192,7 +1360,7 @@
         RS.busy = false;
         if (!r.ok) return roomMsg(roomErr(r));
         ROOM = { code: code, id: id, ver: r.ver, base: data, at: Date.now() }; roomSave();
-        roomMsg('部屋を作りました。「合言葉をコピー」で相手に送ってください');
+        roomMsg('部屋を作りました。「合言葉をコピー」で相手に送ってください'); roomSync();
       });
     });
   }
@@ -1208,7 +1376,7 @@
         if (!window.confirm('この端末のチェック・予定は、部屋の内容に置きかわります。入りますか？')) return roomMsg('');
         applyShared(g.data); S.sample = false; saveLocal();
         ROOM = { code: fmtCode(code), id: id, ver: g.ver, base: clone(g.data), at: Date.now() }; roomSave();
-        roomMsg('部屋に入りました。これから自動で同じ内容になります');
+        roomMsg('部屋に入りました。これから自動で同じ内容になります'); roomSync();
       });
     });
   }
@@ -1218,15 +1386,15 @@
   }
   function roomRotate() {
     if (!ROOM || !window.confirm('新しい合言葉を作ります。古い合言葉は使えなくなるので、相手にも新しい合言葉を送り直してください。作り直しますか？')) return;
-    var old = ROOM.id, code = newCode(), data = sharedOf();
+    var old = ROOM.id, oldPack = ROOM.pack && ROOM.pack.id, code = newCode(), data = sharedOf();
     RS.busy = true; rerender();
     roomId(code).then(function (id) {
       return roomCall({ op: 'create', id: id, data: data }).then(function (r) {
         RS.busy = false;
         if (!r.ok) return roomMsg(roomErr(r));
         ROOM = { code: code, id: id, ver: r.ver, base: data, at: Date.now() }; roomSave();
-        roomCall({ op: 'delete', id: old });
-        roomMsg('新しい合言葉にしました。相手に送り直してください');
+        roomCall({ op: 'delete', id: old }); if (oldPack) roomCall({ op: 'delete', id: oldPack });
+        roomMsg('新しい合言葉にしました。相手に送り直してください'); roomSync();
       });
     });
   }
@@ -1239,7 +1407,7 @@
     var h = '<section class="card" style="display:flex;flex-direction:column;gap:10px"><h2>家族の部屋（自動で同期）</h2>';
     if (!roomUsable()) return h + '<span class="note">この画面（プレビュー）では使えません。公開版のアプリ（github.io）で開くと使えます。</span></section>';
     if (!ROOM) {
-      h += '<span class="note">合言葉を知っている人だけが入れる部屋です。チェック・お気に入り・予約・予定・日程・子どもの身長が、入っている端末どうしで自動で同じになります。</span>' +
+      h += '<span class="note">合言葉を知っている人だけが入れる部屋です。チェック・お気に入り・予約・予定・日程・子どもの身長・持ち物が、入っている端末どうしで自動で同じになります。</span>' +
         '<button class="btn primary" data-act="roomCreate"' + (RS.busy ? ' disabled' : '') + '>部屋を作る（合言葉ができます）</button>' +
         '<label class="field">もらった合言葉で入る<input id="roomCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"></label>' +
         '<button class="btn ghost" data-act="roomJoin"' + (RS.busy ? ' disabled' : '') + '>部屋に入る</button>';
