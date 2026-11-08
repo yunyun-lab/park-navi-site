@@ -695,6 +695,14 @@
           '<label class="field">パーク<select data-act="dayPark" data-v="' + i + '"><option value="dl"' + (d.park === 'dl' ? ' selected' : '') + '>ランド</option><option value="dca"' + (d.park === 'dca' ? ' selected' : '') + '>カリフォルニア</option></select></label>' +
           '<button class="btn" data-act="delDay" data-v="' + i + '" aria-label="' + (i + 1) + '日目を消す">消す</button></div>';
       }).join('') + '<button class="btn ghost" data-act="addDay">日を追加</button></section>';
+    /* アメリカ行きの健康申告書 */
+    h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>健康申告書（アメリカ行き）</h2>' +
+      '<span class="note">2026年11月3日から、アメリカ行きの飛行機に乗る全員に必要になりました（エボラ出血熱の対策）。帰りの日本行きでは必要ありません。</span>' +
+      '<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px">' +
+      '<li>用紙を3人分印刷する（1人1枚）</li>' +
+      '<li>出発前21日間に「コンゴ民主共和国」に行っていない（乗り継ぎも含む）という欄にチェックし、名前・署名・日付を書く。しうの分は親が書いてOK</li>' +
+      '<li>行きの羽田で、ANAの係員に見せる</li></ol>' + linksHTML(DECL_LINKS) +
+      '<span class="note">出し方が変わることもあるので、出発前にANAの案内も確認してください。</span></section>';
     /* 子どもの身長 */
     h += '<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>子どもの身長</h2><span class="note">乗れるかどうかの判定に使います（いまは仮の値）</span>' +
       S.kids.map(function (k, i) {
@@ -1003,6 +1011,16 @@
     ['d15', '服 11/15（日）アナハイム→羽田', '朝：グランドカリフォルニアンで朝ごはん？', [
       ['s1', 'しう：Tシャツ（どれか）'], ['s2', 'しう：ズボン'], ['s3', 'しう：はおり'], ['a1', 'あや：ワンピース']]]
   ];
+  /* アメリカ行きの健康申告書（2026/11/3〜）の参考リンク。持ち物と「準備」タブの両方で使う */
+  var DECL_LINKS = [
+    ['用紙（PDF・英語）', 'https://www.cdc.gov/port-health/media/pdfs/2026/10/367886-A_FRM_EbolaAttestation_3_pass.pdf'],
+    ['提出方法（ANA・JAL）', 'https://www.tokutenryoko.com/news/passage/18783'],
+    ['書き方（英語）', 'https://www.latintimes.com/cdc-ebola-attestation-form-us-bound-international-flights-document-600824']
+  ];
+  var PACK_LINKS = { 'hand:decl': DECL_LINKS };
+  function linksHTML(L) {
+    return '<span class="pklinks">' + L.map(function (l) { return '<a href="' + esc(l[1]) + '" target="_blank" rel="noopener">' + esc(l[0]) + '</a>'; }).join('') + '</span>';
+  }
   var PACK_MAP = ['packOn', 'packBack', 'packWho', 'packAdd', 'packOff'];
   /* 担当：何も決めていなければパパ。押すたびに パパ → ママ → それぞれ（各自で用意）→ パパ */
   var PACK_WHO = ['パパ', 'ママ', 'それぞれ'], PACK_WHO_CLS = { 'パパ': 'papa', 'ママ': 'mama', 'それぞれ': 'each' };
@@ -1032,10 +1050,15 @@
       (mode === 'back' ? '<span class="note">使い切ったもの・置いてくるものも、チェックしてOKです</span>' : '') + '</section>';
     h += '<div class="filter" role="group" aria-label="表示の絞り込み">' + [['all', 'すべて'], ['todo', 'まだのもの'], ['パパ', 'パパの担当'], ['ママ', 'ママの担当']].map(function (f) {
       return '<button data-act="packFilt" data-v="' + esc(f[0]) + '" aria-pressed="' + (filt === f[0]) + '">' + esc(f[1]) + '</button>';
-    }).join('') + '</div><span class="note">担当を押すと「パパ → ママ → それぞれ（各自で用意）」の順に切りかわります</span>';
+    }).join('') + '</div>' +
+      '<div class="filter" role="group" aria-label="服を日付で見る"><span class="filterlbl">服の日付</span>' + PACK_CATS.filter(function (c) { return /^d\d/.test(c[0]); }).map(function (c) {
+        var m = c[1].match(/(\d+\/\d+（.）)/);
+        return '<button data-act="packFilt" data-v="' + c[0] + '" aria-pressed="' + (filt === c[0]) + '">' + esc(m ? m[1] : c[1]) + '</button>';
+      }).join('') + '</div><span class="note">担当を押すと「パパ → ママ → それぞれ（各自で用意）」の順に切りかわります</span>';
     var closed = S.view.packClosed || {}, shown = 0;
     cats.forEach(function (c) {
-      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !isOn(F, it) : whoOf(it.id) === filt || whoOf(it.id) === 'それぞれ'); });
+      if (/^d\d/.test(filt) && c.id !== filt) return;
+      var list = c.items.filter(function (it) { return filt === 'all' || /^d\d/.test(filt) || (filt === 'todo' ? !isOn(F, it) : whoOf(it.id) === filt || whoOf(it.id) === 'それぞれ'); });
       if (filt !== 'all' && !list.length) return;
       shown += list.length;
       var n = c.items.filter(function (it) { return isOn(F, it); }).length, isOpen = !closed[c.id];
@@ -1047,11 +1070,11 @@
         h += '<div class="grpbody">' + list.map(function (it) {
           var on = isOn(F, it), by = S[F][it.id], who = whoOf(it.id);
           return '<div class="item pk' + (on ? ' on' : '') + '"><label class="pkmain"><input type="checkbox" data-act="packChk" data-k="' + esc(it.id) + '"' + (on ? ' checked' : '') + '>' +
-            '<span class="pktext"><span class="pkname">' + (it.maybe ? '<span class="pkmaybe">検討中</span>' : '') + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + '</span></label>' +
+            '<span class="pktext"><span class="pkname">' + (it.maybe ? '<span class="pkmaybe">検討中</span>' : '') + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + (PACK_LINKS[it.id] ? linksHTML(PACK_LINKS[it.id]) : '') + '</span></label>' +
             '<div class="pkside"><button class="pkwho ' + PACK_WHO_CLS[who] + '" data-act="packWho" data-k="' + esc(it.id) + '" aria-label="担当を切りかえ（いま：' + esc(who) + '）">' + esc(who) + '</button>' +
             (on && typeof by === 'string' ? '<span class="pkby">✓ ' + esc(by) + '</span>' : on && by === undefined && it.pre ? '<span class="pkby">入れ済み</span>' : '') + '</div>' +
             '<button class="pkdel" data-act="packDel" data-k="' + esc(it.id) + '" aria-label="' + esc(it.name) + 'をリストから消す">×</button></div>';
-        }).join('') + (filt === 'all' ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="項目を追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
+        }).join('') + (filt === 'all' || /^d\d/.test(filt) ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="項目を追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
       }
       h += '</section>';
     });
