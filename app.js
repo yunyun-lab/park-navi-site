@@ -999,7 +999,9 @@
       ['liquid', '液体は小分けにして透明な袋へ'], ['trash', 'ゴミ袋・エチケット袋']]]
   ];
   var PACK_MAP = ['packOn', 'packBack', 'packWho', 'packAdd', 'packOff'];
-  var PACK_WHO = ['パパ', 'ママ'];
+  /* 担当：何も決めていなければパパ。押すたびに パパ → ママ → それぞれ（各自で用意）→ パパ */
+  var PACK_WHO = ['パパ', 'ママ', 'それぞれ'], PACK_WHO_CLS = { 'パパ': 'papa', 'ママ': 'mama', 'それぞれ': 'each' };
+  function whoOf(id) { var w = S.packWho[id]; return w === 'ママ' || w === 'それぞれ' ? w : 'パパ'; }
   PACK_MAP.forEach(function (f) { if (!S[f] || typeof S[f] !== 'object' || Array.isArray(S[f])) S[f] = {}; });
   function packItems() {
     return PACK_CATS.map(function (c) {
@@ -1021,12 +1023,12 @@
       '<div class="pkprog"><span class="big">' + nDone + '<small> / ' + all.length + '</small></span><span class="meta">' + (nDone === all.length && all.length ? (mode === 'go' ? '準備ばっちり！' : '忘れ物なし！') : (mode === 'go' ? 'カバンに入れたもの' : 'カバンに戻したもの')) + '</span></div>' +
       '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></div>' +
       (mode === 'back' ? '<span class="note">使い切ったもの・置いてくるものも、チェックしてOKです</span>' : '') + '</section>';
-    h += '<div class="filter" role="group" aria-label="表示の絞り込み">' + [['all', 'すべて'], ['todo', 'まだのもの']].concat(PACK_WHO.map(function (w) { return [w, w + 'の担当']; })).map(function (f) {
+    h += '<div class="filter" role="group" aria-label="表示の絞り込み">' + [['all', 'すべて'], ['todo', 'まだのもの'], ['パパ', 'パパの担当'], ['ママ', 'ママの担当']].map(function (f) {
       return '<button data-act="packFilt" data-v="' + esc(f[0]) + '" aria-pressed="' + (filt === f[0]) + '">' + esc(f[1]) + '</button>';
-    }).join('') + '</div>';
+    }).join('') + '</div><span class="note">担当を押すと「パパ → ママ → それぞれ（各自で用意）」の順に切りかわります</span>';
     var closed = S.view.packClosed || {}, shown = 0;
     cats.forEach(function (c) {
-      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !S[F][it.id] : S.packWho[it.id] === filt); });
+      var list = c.items.filter(function (it) { return filt === 'all' || (filt === 'todo' ? !S[F][it.id] : whoOf(it.id) === filt || whoOf(it.id) === 'それぞれ'); });
       if (filt !== 'all' && !list.length) return;
       shown += list.length;
       var n = c.items.filter(function (it) { return S[F][it.id]; }).length, isOpen = !closed[c.id];
@@ -1036,17 +1038,17 @@
         '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
       if (isOpen) {
         h += '<div class="grpbody">' + list.map(function (it) {
-          var by = S[F][it.id], who = S.packWho[it.id];
+          var by = S[F][it.id], who = whoOf(it.id);
           return '<div class="item pk' + (by ? ' on' : '') + '"><label class="pkmain"><input type="checkbox" data-act="packChk" data-k="' + esc(it.id) + '"' + (by ? ' checked' : '') + '>' +
             '<span class="pktext"><span class="pkname">' + esc(it.name) + '</span>' + (it.note ? '<span class="note">' + esc(it.note) + '</span>' : '') + '</span></label>' +
-            '<div class="pkside"><button class="pkwho' + (who ? ' set' : '') + '" data-act="packWho" data-k="' + esc(it.id) + '" aria-label="担当を切りかえ（いま：' + esc(who || '未定') + '）">' + esc(who || '担当？') + '</button>' +
+            '<div class="pkside"><button class="pkwho ' + PACK_WHO_CLS[who] + '" data-act="packWho" data-k="' + esc(it.id) + '" aria-label="担当を切りかえ（いま：' + esc(who) + '）">' + esc(who) + '</button>' +
             (by && by !== true ? '<span class="pkby">✓ ' + esc(by) + '</span>' : '') + '</div>' +
             '<button class="pkdel" data-act="packDel" data-k="' + esc(it.id) + '" aria-label="' + esc(it.name) + 'をリストから消す">×</button></div>';
         }).join('') + (filt === 'all' ? '<div class="pkadd"><input class="packin" id="pkin-' + c.id + '" placeholder="' + esc(c.ja) + 'に追加" aria-label="' + esc(c.ja) + 'に追加する物" maxlength="40"><button class="btn small" data-act="packAddBtn" data-v="' + c.id + '">追加</button></div>' : '') + '</div>';
       }
       h += '</section>';
     });
-    if (filt !== 'all' && !shown) h += '<p class="empty">' + (filt === 'todo' ? 'ぜんぶチェック済みです' : filt + 'の担当はまだありません。各項目の「担当？」を押すと決められます') + '</p>';
+    if (filt !== 'all' && !shown) h += '<p class="empty">' + (filt === 'todo' ? 'ぜんぶチェック済みです' : filt + 'の担当はありません') + '</p>';
     var nOff = Object.keys(S.packOff).length;
     h += '<details class="more"><summary>リストの戻し方・チェックを全部外す</summary><div class="row2" style="margin-top:6px">' +
       '<button class="btn" data-act="packRestore"' + (nOff ? '' : ' disabled') + '>消した項目を戻す' + (nOff ? '（' + nOff + '件）' : '') + '</button>' +
@@ -1061,7 +1063,7 @@
       case 'packFilt': S.view.packFilt = v; return true;
       case 'packGrp': S.view.packClosed = S.view.packClosed || {}; S.view.packClosed[v] = !S.view.packClosed[v]; return true;
       case 'packChk': if (el.checked) S[F][k] = S.me || 'わたし'; else delete S[F][k]; return true;
-      case 'packWho': { var i = PACK_WHO.indexOf(S.packWho[k]); if (i + 1 < PACK_WHO.length) S.packWho[k] = PACK_WHO[i + 1]; else delete S.packWho[k]; return true; }
+      case 'packWho': { var nx = PACK_WHO[(PACK_WHO.indexOf(whoOf(k)) + 1) % PACK_WHO.length]; if (nx === 'パパ') delete S.packWho[k]; else S.packWho[k] = nx; return true; }
       case 'packDel': {
         var own = !!S.packAdd[k], nm = own ? S.packAdd[k].n : (packItems().map(function (c) { return c.items; }).reduce(function (x, y) { return x.concat(y); }, []).filter(function (it) { return it.id === k; })[0] || {}).name;
         if (!window.confirm('「' + (nm || 'この項目') + '」をリストから消しますか？' + (own ? '' : '\n（下の「消した項目を戻す」で戻せます）'))) return false;
